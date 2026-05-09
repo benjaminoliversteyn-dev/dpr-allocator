@@ -398,12 +398,39 @@ def run_allocation(master: pd.DataFrame, reviews_per_person: int, seed: int):
 # Template CSV
 # ─────────────────────────────────────────────
 def make_template_csv():
+    names = [
+        "Alice Smith", "Bob Jones", "Carol White", "David Lee", "Eve Brown",
+        "Frank Miller", "Grace Wilson", "Henry Moore", "Isla Taylor", "Jack Anderson",
+        "Karen Thomas", "Liam Jackson", "Maya Harris", "Noah Martin", "Olivia Thompson",
+        "Peter Garcia", "Quinn Martinez", "Rachel Robinson", "Sam Clark", "Tara Lewis",
+        "Uma Walker", "Victor Hall", "Wendy Allen", "Xavier Young", "Yara King",
+        "Zara Wright", "Aaron Scott", "Beth Green", "Carlos Adams", "Diana Baker",
+        "Ethan Nelson", "Fiona Carter", "George Mitchell", "Hannah Perez", "Ivan Roberts",
+        "Julia Turner", "Kevin Phillips", "Laura Campbell", "Marcus Parker", "Nina Evans",
+        "Oscar Edwards", "Priya Collins", "Quinn Stewart", "Rosa Sanchez", "Samuel Morris",
+        "Tina Rogers", "Ulrich Reed", "Vera Cook", "William Morgan", "Xena Bell",
+    ]
+    # A handful of realistic conflicts (by name), rest empty
+    conflicts = [""] * 50
+    conflicts[0]  = "Bob Jones"
+    conflicts[1]  = "Alice Smith"
+    conflicts[4]  = "Frank Miller"
+    conflicts[5]  = "Eve Brown"
+    conflicts[10] = "Liam Jackson"
+    conflicts[11] = "Karen Thomas"
+    conflicts[20] = "Victor Hall"
+    conflicts[21] = "Uma Walker"
+    conflicts[30] = "Fiona Carter"
+    conflicts[31] = "Ethan Nelson"
+    conflicts[40] = "Priya Collins"
+    conflicts[41] = "Oscar Edwards"
+
     template = pd.DataFrame({
-        "ID": [1, 2, 3, 4, 5],
-        "ApplicantName": ["Alice Smith", "Bob Jones", "Carol White", "David Lee", "Eve Brown"],
-        "Email": ["alice@example.com", "bob@example.com", "carol@example.com", "david@example.com", "eve@example.com"],
-        "ApplicationNumber": ["APP001", "APP002", "APP003", "APP004", "APP005"],
-        "Conflicts": ["Bob Jones", "", "David Lee", "", "Alice Smith"],
+        "ID": list(range(1, 51)),
+        "ApplicantName": names,
+        "Email": [f"{n.split()[0].lower()}.{n.split()[1].lower()}@example.com" for n in names],
+        "ApplicationNumber": [f"APP{str(i).zfill(3)}" for i in range(1, 51)],
+        "Conflicts": conflicts,
     })
     return template.to_csv(index=False)
 
@@ -421,11 +448,30 @@ with st.sidebar:
         help="How many applications each person reviews (and receives reviews from)."
     )
 
-    random_seed = st.number_input(
-        "Random seed",
-        min_value=0, max_value=99999, value=122,
-        help="Set the same seed to reproduce results. Change it to get a different allocation."
-    )
+    seed_col, info_col = st.columns([5, 1])
+    with seed_col:
+        random_seed = st.number_input(
+            "Random seed",
+            min_value=0, max_value=99999, value=122,
+        )
+    with info_col:
+        st.markdown("<div style='margin-top:1.9rem'></div>", unsafe_allow_html=True)
+        with st.popover("ℹ️"):
+            st.markdown("""
+**What is a random seed?**
+
+The allocation involves lots of random choices — which group each person goes into, who gets assigned to whom, etc.
+
+The seed is a "starting point" for all that randomness:
+
+- **Same seed = same result every time.**  
+  Running the allocation twice with seed `122` gives identical groups and assignments. Useful for reproducibility.
+
+- **Different seed = different allocation.**  
+  Not happy with a result? Change the seed to any other number and rerun — you'll get a completely different but equally valid allocation.
+
+The default `122` matches the original script.
+            """)
 
     st.markdown("---")
     st.markdown("### 📋 Required CSV columns")
